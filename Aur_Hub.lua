@@ -46,7 +46,7 @@ local components = (function()
                 pcall(old.Destroy, old)
             end
         end
-        _G.DungeonAutofarmVersion = "Aur_Hub 1.9.144"
+        _G.DungeonAutofarmVersion = "Aur_Hub 1.9.146"
         local burstMin, m = 18, 28
         local config, timing, timingBelow, V, E =
             {
@@ -1704,7 +1704,7 @@ local components = (function()
                 pcall(runtimeState.bugLog, J, w)
             end
             if config.debugPrints then
-                print(("[Aur_Hub %s][%s] %s"):format("1.9.144", J, w))
+                print(("[Aur_Hub %s][%s] %s"):format("1.9.146", J, w))
             end
         end
         local J = {}
@@ -2256,7 +2256,7 @@ local components = (function()
         local g = -math.huge
         local function contextSnapshot()
             local b = {
-                __version = "Aur_Hub 1.9.144",
+                __version = "Aur_Hub 1.9.146",
             }
             for index, entry in ipairs(persist) do
                 local G, z = config[entry], context.devSaved and context.devSaved[entry]
@@ -3038,7 +3038,7 @@ local components = (function()
             end
             context.teleportSaveConn = localPlayer.OnTeleport:Connect(h) -- D-017: registered for destroy below
         end)
-        context.SCRIPT_VERSION = "Aur_Hub 1.9.144"
+        context.SCRIPT_VERSION = "Aur_Hub 1.9.146"
         context.SCRIPT_CODENAME = "Aur_Hub"
         context.SCRIPT_BUILD_DATE = "2026-10-12"
         context.SCRIPT_CHANGELOG = {}
@@ -79020,11 +79020,18 @@ local components = (function()
                             index6 = context.AF.presence
                                 and context.AF.presence(entry6.name, config.afOnlineAge or 60)
                             local U = index6 and tonumber(index6.resting)
+                            local rest = context.AF.presence and context.AF.presence(entry6.name, 86400)
+                            rest = rest and tonumber(rest.resting)
                             if
-                                index6
+                                config.afRegroupMissing ~= false and not (rest and rest > os.time()) -- D-237: missing at the end of the run (left, crashed, closed): regroup, never replay with fewer
+                                or index6
                                 and not (index6 and tonumber(index6.stuck) and os.time() - tonumber(index6.stuck) <= (config.afStuckFresh or 120))
                                 and not (U and U > os.time())
                             then
+                                if lB.regroupSaid ~= game.JobId and contextLog then
+                                    lB.regroupSaid = game.JobId
+                                    pcall(contextLog, "AltFarm", ("run over - %s is not in this server: back to the lobby to regroup (no replay with fewer)"):format(tostring(entry6.name)))
+                                end
                                 _ = false
                                 break
                             end
